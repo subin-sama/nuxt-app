@@ -89,7 +89,7 @@ import { years } from "~/constants/years";
 import { useBookStore } from "~/store/book";
 import { bookSchema, type BookSchema } from "~/util/schema/book-schema";
 
-const state = reactive<BookSchema>({
+const getInitialState = (): BookSchema => ({
   id: crypto.randomUUID(),
   title: "",
   author: "",
@@ -99,6 +99,8 @@ const state = reactive<BookSchema>({
   updated_at: new Date().toISOString(),
 });
 
+const state = reactive<BookSchema>(getInitialState());
+
 const toast = useToast();
 const open = ref(false);
 const form = ref();
@@ -106,12 +108,20 @@ const bookStore = useBookStore();
 
 async function onSubmit(event: FormSubmitEvent<BookSchema>) {
   try {
+    const bookData = {
+      ...event.data,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    bookStore.addBook(bookData);
+
     toast.add({
       title: "Created Success",
-      description: `"${event.data.title}" has been added to your collection.`,
+      description: `"${bookData.title}" has been added to your collection.`,
       color: "success",
     });
-    bookStore.addBook(event.data);
   } catch {
     toast.add({
       title: "Failed to add book.",
@@ -121,10 +131,7 @@ async function onSubmit(event: FormSubmitEvent<BookSchema>) {
   } finally {
     bookStore.isLoading = false;
     open.value = false;
-    state.title = "";
-    state.author = "";
-    state.published_year = years[0].value;
-    state.genre = "";
+    Object.assign(state, getInitialState());
   }
 }
 
