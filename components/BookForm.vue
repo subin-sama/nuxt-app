@@ -1,26 +1,23 @@
 <template>
-  <UButton
-    icon="i-lucide-plus"
-    size="md"
-    color="primary"
-    variant="solid"
-    @click="open = true"
-    >Add Book</UButton
-  >
-  <UModal
+  <Modal
     id="add-book-form"
-    v-model:open="open"
-    title="Add Book"
-    description="Fill in the details to add a new book to your collection."
-    :ui="{ footer: 'justify-end' }"
+    :title="formState.title"
+    :description="formState.description"
+    :open="open"
+    @close="closeModal"
   >
     <template #body>
-      <UForm ref="form" :schema="bookSchema" :state="state" @submit="onSubmit">
+      <UForm
+        ref="form"
+        :schema="bookSchema"
+        :state="BookState"
+        @submit="onSubmit"
+      >
         <div class="w-full">
           <div class="grid grid-cols-1 gap-x-4 space-y-2 md:grid-cols-2">
             <UFormField label="Title" name="title" required>
               <UInput
-                v-model="state.title"
+                v-model="BookState.title"
                 class="w-full"
                 placeholder="Enter book title"
                 :disabled="bookStore.isLoading"
@@ -28,7 +25,7 @@
             </UFormField>
             <UFormField label="Author" name="author" required>
               <UInput
-                v-model="state.author"
+                v-model="BookState.author"
                 class="w-full"
                 placeholder="Enter author name"
                 required
@@ -42,7 +39,7 @@
               required
             >
               <USelect
-                v-model="state.published_year"
+                v-model="BookState.published_year"
                 :items="years"
                 option-attribute="label"
                 value-attribute="value"
@@ -52,7 +49,7 @@
             </UFormField>
             <UFormField label="Genre" name="genre" required>
               <UInput
-                v-model="state.genre"
+                v-model="BookState.genre"
                 class="w-full"
                 placeholder="Enter genre"
                 required
@@ -65,77 +62,61 @@
     </template>
 
     <template #footer>
-      <UButton
-        label="Cancel"
-        color="neutral"
-        variant="outline"
-        :disabled="bookStore.isLoading"
-        @click="open = false"
-      />
-      <UButton
-        label="Submit"
-        color="primary"
-        :disabled="bookStore.isLoading"
-        :loading="bookStore.isLoading"
-        @click="submitForm"
-      />
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <Button
+          label="Cancel"
+          color="gray"
+          variant="outline"
+          :disabled="bookStore.isLoading"
+          @click="closeModal"
+        />
+        <Button
+          :label="props.formState.isUpdate ? 'Update' : 'Create'"
+          color="primary"
+          :disabled="bookStore.isLoading"
+          :loading="bookStore.isLoading"
+          @click="submitForm"
+        />
+      </div>
     </template>
-  </UModal>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { years } from "~/constants/years";
 import { useBookStore } from "~/store/book";
-import { bookSchema, type BookSchema } from "~/util/schema/book-schema";
+import {
+  BookState,
+  bookSchema,
+  type BookSchema,
+} from "~/util/schema/book-schema";
+import type { FormState } from "~/util/types/book";
 
-const getInitialState = (): BookSchema => ({
-  id: crypto.randomUUID(),
-  title: "",
-  author: "",
-  published_year: years[0].value,
-  genre: "",
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-});
+const props = defineProps<{
+  onCreate: (event: FormSubmitEvent<BookSchema>) => void;
+  onUpdate: (event: FormSubmitEvent<BookSchema>) => void;
+  onClose: () => void;
+  open: boolean;
+  formState: FormState;
+}>();
 
-const state = reactive<BookSchema>(getInitialState());
-
-const toast = useToast();
-const open = ref(false);
 const form = ref();
 const bookStore = useBookStore();
 
 async function onSubmit(event: FormSubmitEvent<BookSchema>) {
-  try {
-    const bookData = {
-      ...event.data,
-      id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    bookStore.addBook(bookData);
-
-    toast.add({
-      title: "Created Success",
-      description: `"${bookData.title}" has been added to your collection.`,
-      color: "success",
-    });
-  } catch {
-    toast.add({
-      title: "Failed to add book.",
-      description: "Please try again.",
-      color: "error",
-    });
-  } finally {
-    bookStore.isLoading = false;
-    open.value = false;
-    Object.assign(state, getInitialState());
+  if (props.formState.isUpdate) {
+    props.onUpdate(event);
+  } else {
+    props.onCreate(event);
   }
 }
 
 function submitForm() {
   form.value?.submit();
+}
+
+function closeModal() {
+  props.onClose();
 }
 </script>

@@ -1,4 +1,5 @@
 import z from "zod";
+import { years } from "~/constants/years";
 
 export const bookSchema = z.object({
   id: z.string().min(1, "ID is required"),
@@ -11,3 +12,14 @@ export const bookSchema = z.object({
 });
 
 export type BookSchema = z.output<typeof bookSchema>;
+
+export const getInitialState = (): BookSchema => ({
+  id: crypto.randomUUID(),
+  title: "",
+  author: "",
+  published_year: years[0].value,
+  genre: "",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+});
+export const BookState = reactive<BookSchema>(getInitialState());

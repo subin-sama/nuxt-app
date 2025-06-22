@@ -20,19 +20,28 @@
         <Placeholder class="h-32" />
         <p class="text-sm text-gray-500 flex items-center gap-2">
           <Icon name="lucide:user" class="h-4 w-4" />
-          {{ book.author }}
+          <span class="text-black font-semibold">{{ book.author }}</span>
         </p>
         <p class="text-sm text-gray-500 flex items-center gap-2">
           <Icon name="lucide:book" class="h-4 w-4" />
-          Published in {{ book.published_year }}
+          Published in
+          <span class="text-black font-semibold">{{
+            book.published_year
+          }}</span>
         </p>
         <p class="text-sm text-gray-500 flex items-center gap-2">
           <Icon name="lucide:calendar" class="h-4 w-4" />
-          {{ formatDate(book.created_at) }}
+          Created
+          <span class="text-black font-semibold">{{
+            formatDate(book.created_at)
+          }}</span>
         </p>
         <p class="text-sm text-gray-500 flex items-center gap-2">
           <Icon name="lucide:calendar" class="h-4 w-4" />
-          {{ formatDate(book.updated_at) }}
+          Updated
+          <span class="text-black font-semibold">{{
+            formatDate(book.updated_at)
+          }}</span>
         </p>
       </slot>
     </div>
@@ -47,7 +56,7 @@
             color="primary"
             variant="solid"
             class="w-full text-center"
-            @click="onEdit(book)"
+            @click="props.onEdit(book)"
           />
           <Button
             icon="lucide:trash"
@@ -66,7 +75,7 @@
 import type { BookSchema } from "~/util/schema/book-schema";
 import { formatDate } from "~/util/formatDate";
 
-defineProps<{
+const props = defineProps<{
   books: BookSchema[];
   onEdit: (book: BookSchema) => void;
   onDelete: (book: BookSchema) => void;
