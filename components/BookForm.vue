@@ -23,7 +23,7 @@
                 v-model="state.title"
                 class="w-full"
                 placeholder="Enter book title"
-                :disabled="isLoading"
+                :disabled="bookStore.isLoading"
               />
             </UFormField>
             <UFormField label="Author" name="author" required>
@@ -32,7 +32,7 @@
                 class="w-full"
                 placeholder="Enter author name"
                 required
-                :disabled="isLoading"
+                :disabled="bookStore.isLoading"
               />
             </UFormField>
             <UFormField
@@ -47,7 +47,7 @@
                 option-attribute="label"
                 value-attribute="value"
                 class="w-full"
-                :disabled="isLoading"
+                :disabled="bookStore.isLoading"
               />
             </UFormField>
             <UFormField label="Genre" name="genre" required>
@@ -56,7 +56,7 @@
                 class="w-full"
                 placeholder="Enter genre"
                 required
-                :disabled="isLoading"
+                :disabled="bookStore.isLoading"
               />
             </UFormField>
           </div>
@@ -69,14 +69,14 @@
         label="Cancel"
         color="neutral"
         variant="outline"
-        :disabled="isLoading"
+        :disabled="bookStore.isLoading"
         @click="open = false"
       />
       <UButton
         label="Submit"
         color="primary"
-        :disabled="isLoading"
-        :loading="isLoading"
+        :disabled="bookStore.isLoading"
+        :loading="bookStore.isLoading"
         @click="submitForm"
       />
     </template>
@@ -86,30 +86,32 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { years } from "~/constants/years";
+import { useBookStore } from "~/store/book";
 import { bookSchema, type BookSchema } from "~/util/schema/book-schema";
 
-const state = reactive<Partial<BookSchema>>({
+const state = reactive<BookSchema>({
+  id: crypto.randomUUID(),
   title: "",
   author: "",
   published_year: years[0].value,
   genre: "",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 });
 
 const toast = useToast();
 const open = ref(false);
 const form = ref();
-const isLoading = ref(false);
+const bookStore = useBookStore();
 
 async function onSubmit(event: FormSubmitEvent<BookSchema>) {
-  isLoading.value = true;
-
   try {
     toast.add({
       title: "Created Success",
       description: `"${event.data.title}" has been added to your collection.`,
       color: "success",
     });
-    open.value = false;
+    bookStore.addBook(event.data);
   } catch {
     toast.add({
       title: "Failed to add book.",
@@ -117,7 +119,12 @@ async function onSubmit(event: FormSubmitEvent<BookSchema>) {
       color: "error",
     });
   } finally {
-    isLoading.value = false;
+    bookStore.isLoading = false;
+    open.value = false;
+    state.title = "";
+    state.author = "";
+    state.published_year = years[0].value;
+    state.genre = "";
   }
 }
 

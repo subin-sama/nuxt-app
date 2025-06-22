@@ -10,13 +10,34 @@
               <p class="text-gray-600">Manage your book collection</p>
             </div>
           </div>
-          <BookForm ref="modalRef" title="Add Book" />
+          <BookForm title="Add Book" />
         </div>
+      </div>
+      <div
+        class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        <BookCard :books="bookStore.books" @delete="onDelete" @edit="onEdit" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const open = ref(true);
+import { useBookStore } from "~/store/book";
+import type { BookSchema } from "~/util/schema/book-schema";
+
+const bookStore = useBookStore();
+
+function onDelete(book: BookSchema) {
+  bookStore.books = bookStore.books.filter((b) => b.title !== book.title);
+}
+
+function onEdit(book: BookSchema) {
+  bookStore.books = bookStore.books.map((b) => {
+    if (b.title === book.title) {
+      return book;
+    }
+    return b;
+  });
+}
 </script>
