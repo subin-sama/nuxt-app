@@ -1,11 +1,12 @@
+import { BOOKS } from "~/constants/books";
 import type { BookSchema } from "~/util/schema/book-schema";
 
 export const useBookStore = defineStore("book", () => {
-  const books = ref<BookSchema[]>([]);
+  const books = ref<BookSchema[]>(BOOKS);
   const isLoading = ref(false);
 
   function addBook(book: BookSchema) {
-    books.value.push(book);
+    books.value.unshift(book);
   }
 
   function updateBook(book: BookSchema) {
@@ -28,6 +29,10 @@ export const useBookStore = defineStore("book", () => {
     return books.value.find((b) => b.id === id);
   }
 
+  function getAllBook() {
+    return books.value;
+  }
+
   return {
     books,
     isLoading,
@@ -35,5 +40,6 @@ export const useBookStore = defineStore("book", () => {
     updateBook,
     deleteBook,
     getBook,
+    getAllBook,
   };
 });

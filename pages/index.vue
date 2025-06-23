@@ -25,11 +25,7 @@
         </div>
       </div>
 
-      <div
-        class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      >
-        <BookCard :books="bookStore.books" @delete="onDelete" @edit="onEdit" />
-      </div>
+      <BookCard :books="books" @delete="onDelete" @edit="onEdit" />
 
       <BookForm
         :form-state="formState"
@@ -53,6 +49,7 @@ import {
 import type { FormState } from "~/util/types/book";
 
 const bookStore = useBookStore();
+const books = ref<BookSchema[]>(bookStore.getAllBook());
 const toast = useToast();
 const open = ref(false);
 const formState = ref<FormState>({
@@ -63,6 +60,12 @@ const formState = ref<FormState>({
 
 function onDelete(book: BookSchema) {
   bookStore.deleteBook(book);
+  toast.add({
+    title: "Deleted Success",
+    description: `"${book.title}" has been deleted.`,
+    color: "success",
+  });
+  books.value = bookStore.getAllBook();
 }
 
 function onEdit(book: BookSchema) {
@@ -114,6 +117,7 @@ function onCreate(event: FormSubmitEvent<BookSchema>) {
     bookStore.isLoading = false;
     closeModal();
     Object.assign(BookState, getInitialState());
+    books.value = bookStore.getAllBook();
   }
 }
 
